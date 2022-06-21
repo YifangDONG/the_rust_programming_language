@@ -10,6 +10,7 @@
 mod collection_ex;
 mod enum_ex;
 mod io_ex;
+mod smart_pointers;
 mod struct_ex;
 
 ///
