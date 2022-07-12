@@ -1,11 +1,12 @@
 use std::{fmt::format, ops::Deref};
-struct MyBox<T>(T);
-impl<T> MyBox<T> {
+struct MyBox<T: std::fmt::Display>(T);
+
+impl<T: std::fmt::Display> MyBox<T> {
     fn new(x: T) -> MyBox<T> {
         MyBox(x)
     }
 }
-impl<T> Deref for MyBox<T> {
+impl<T: std::fmt::Display> Deref for MyBox<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -35,6 +36,20 @@ fn deref_coercion() {
     // &MyBox<String> => deref => &String => deref => &str match the parameter in hello
     let result = hello(&rust);
     assert_eq!("hello rust".to_string(), result);
+}
+
+impl<T: std::fmt::Display> Drop for MyBox<T> {
+    fn drop(&mut self) {
+        println!("release the source {}", self.0);
+    }
+}
+
+#[test]
+fn drop_trait() {
+    let a = MyBox::new(1);
+    let b = MyBox::new(2);
+    drop(b);
+    println!("{}", *a);
 }
 
 enum List {
@@ -72,7 +87,7 @@ fn create_const_list() {
     assert_eq!("1,2,3".to_string(), output);
 }
 
-use std::rc::Rc;
+use std::rc::Rc; // Rc can be used in only single thread
 #[derive(Debug)]
 enum SharedList {
     Node(i32, Rc<SharedList>),
@@ -84,7 +99,7 @@ fn create_shared_const_list() {
         1,
         Rc::new(SharedList::Node(2, Rc::new(SharedList::Nil))),
     ));
-    let b = SharedList::Node(3, Rc::clone(&a));
+    let b = SharedList::Node(3, Rc::clone(&a)); // Rc::clone is a shallow clone which only increment the reference count, while a.clone() is a deep clone
     let c = SharedList::Node(4, Rc::clone(&a));
     println!("{:?}", b);
     println!("{:?}", c);
@@ -154,8 +169,9 @@ impl Notifier for MockNotifier {
     fn send(&self, msg: &str) {
         // because in the trait, the self is defined as immutable, so in the test we cannot create a mock change the self to set the message.
         // use RefCell to change the immutable self.
-        self.messages.replace(msg.to_string());
+        self.messages.replace(msg.to_string()); // or *(self.messages.borrow_mut()) = msg.to_string(); 
         // can't do *(self.messages) = msg.to_string(); because RefCell does't implement DeRef
+  
     }
 }
 #[test]
@@ -165,15 +181,15 @@ fn send_message() {
     limit_service.reserve(20);
     assert_eq!(
         "Error: over quota".to_string(),
-        notifier.messages.clone().into_inner() // need clone because into_inner move borrow, TODO check how to avoid clone
+        notifier.messages.borrow().to_string()
     );
     limit_service.reserve(8);
     assert_eq!(
         "Warning: used 75% of quota".to_string(),
-        notifier.messages.clone().borrow().to_string()
+        notifier.messages.borrow().to_string()
     );
     limit_service.reserve(5);
-    assert_eq!("OK".to_string(), notifier.messages.into_inner());
+    assert_eq!("OK".to_string(), notifier.messages.borrow().to_string());
 }
 
 #[derive(Debug)]

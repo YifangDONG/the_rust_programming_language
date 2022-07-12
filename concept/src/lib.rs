@@ -12,6 +12,7 @@ mod enum_ex;
 mod io_ex;
 mod smart_pointers;
 mod struct_ex;
+mod concurrency;
 
 ///
 /// This is an documentation example
