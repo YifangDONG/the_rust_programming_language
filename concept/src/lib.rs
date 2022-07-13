@@ -8,11 +8,12 @@
 //! each file under scr/bin is a singleton binary crate
 #![allow(dead_code)]
 mod collection_ex;
+mod concurrency;
 mod enum_ex;
 mod io_ex;
+mod pattern_matching;
 mod smart_pointers;
 mod struct_ex;
-mod concurrency;
 
 ///
 /// This is an documentation example
