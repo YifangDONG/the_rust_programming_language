@@ -4,5 +4,6 @@ members = [
     "concept",
     "guess-game",
     "kata",
-    "minigrep"
+    "minigrep",
+    "web-server"
 ]
